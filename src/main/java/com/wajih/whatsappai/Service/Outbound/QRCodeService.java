@@ -2,6 +2,7 @@ package com.wajih.whatsappai.Service.Outbound;
 
 import com.wajih.whatsappai.Model.WhatsappSession;
 import com.wajih.whatsappai.Service.Inbound.WhatsappSessionService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,10 +13,11 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Optional;
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class QRCodeService {
     @Autowired
     WhatsappSessionService whatsappSessionService;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     @Value("${bailey-backend}")
     String outboundUrl;
     public String getOutboundUrl() {

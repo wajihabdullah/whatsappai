@@ -3,11 +3,16 @@ package com.wajih.whatsappai.Service.Inbound;
 import com.wajih.whatsappai.Model.WhatsappEvent;
 import com.wajih.whatsappai.Model.WhatsappSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+import static java.rmi.server.LogStream.log;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ConnectionHandlerService {
@@ -43,9 +48,18 @@ public class ConnectionHandlerService {
                     System.out.println(was.get().getUsername()+" logged out");
                 }
                 break;
+            case "already_logged_in":
+                if(!exists){
+                    WhatsappSession newSession=new WhatsappSession();
+                    newSession.setUsername(username);
+                    newSession.setActive(true);
+                    sessionService.save(newSession);
+                    System.out.println("NEW SESSION");
+                }
+                break;
 
                 default:
-                    System.out.println("Invalid event received");
+                    log.error("Invalid event received: " + payload);
         }
     }
 }

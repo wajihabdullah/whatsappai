@@ -32,6 +32,7 @@ public class QRCodeController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         String qr = qrCodeService.getQRCode(username);
+        //String qr = qrCodeService.getQRCode(username);
         if (qr.equals("NULL")) {
             return new ResponseEntity<>("Try again later", HttpStatus.NOT_FOUND);
         } else {

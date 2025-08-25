@@ -20,7 +20,11 @@ public class Message {
     private String username;
     @Column(nullable = false)
     private String sender;
+    @Column(nullable = false,columnDefinition = "TEXT")
     private String message;
     private String pushName;
     private Instant timestamp;
+    @OneToOne(mappedBy = "originalMessage", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private AIResponse aiResponse;
+
 }
