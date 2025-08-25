@@ -20,6 +20,8 @@ public class WhatsappSession {
     private Long id;
     @Column(nullable = false)
     private String username;
-    private long chatContextID;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="chat_context_id",referencedColumnName = "id")
+    private ChatContext chatContext;
     boolean isActive;
 }

@@ -1,51 +1,48 @@
 package com.wajih.whatsappai.Service.Outbound;
 
-
+import com.wajih.whatsappai.Model.WhatsappSession;
+import com.wajih.whatsappai.Service.Inbound.WhatsappSessionService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.Map;
-
+import java.util.Optional;
+@Slf4j
 @Service
 public class QRCodeService {
-
-    private final WebClient webClient;
-
+    @Autowired
+    WhatsappSessionService whatsappSessionService;
+    private final RestTemplate restTemplate = new RestTemplate();
     @Value("${bailey-backend}")
-    private String outboundUrl;
-
-    // Inject WebClient.Builder to create a configured WebClient instance
-    public QRCodeService(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.baseUrl(outboundUrl).build();
+    String outboundUrl;
+    public String getOutboundUrl() {
+        return outboundUrl;
     }
+    public String getQRCode(String username){
+        String url = getOutboundUrl()+"/qr"; // BaileyServer endpoint
+        String requestJson = "{ \"username\": \"" + username + "\" }";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> entity = new HttpEntity<String>(requestJson, headers);
+        ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
 
-    /**
-     * Asynchronously gets the QR code from the Baileys backend.
-     *
-     * @param username The username for which to request the QR code.
-     * @return A Mono<String> that will emit the response body or "NULL" on error.
-     */
-    public Mono<String> getQRCode(String username) {
-        String url = "/qr"; // The endpoint path
+        if(response.getStatusCode() == HttpStatus.OK){
+            return response.getBody();
+        }else{
+            log.error("Could not create QR code for user " + username);
+            return "NULL";
+        }
 
-        Map<String, String> requestBody = Map.of("username", username);
-
-        return this.webClient.post()
-                .uri(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(requestBody)
-                .retrieve() // Sends the request and retrieves the response
-                .bodyToMono(String.class) // Extracts the body to a Mono<String>
-                .onErrorResume(error -> {
-                    // Log the error for debugging purposes
-                    System.err.println("Failed to get QR code for " + username + ": " + error.getMessage());
-                    // Return a default value in case of any error (e.g., 4xx or 5xx)
-                    return Mono.just("NULL");
-                });
+    }
+    public Boolean hasScanned(String username){
+        Optional<WhatsappSession> was=whatsappSessionService.findByUsername(username);
+        if(was.isPresent()){
+            return was.get().isActive();
+        }else{
+            return false;
+        }
     }
 }
-
